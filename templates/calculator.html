@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            gap: 30px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .calculator {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            flex: 1;
+            max-width: 500px;
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .calculator h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            font-size: 2.5em;
+        }
+
+        .display {
+            background: rgba(0, 0, 0, 0.3);
+            border: none;
+            border-radius: 15px;
+            padding: 20px;
+            font-size: 1.5em;
+            color: white;
+            text-align: right;
+            margin-bottom: 20px;
+            width: 100%;
+            min-height: 80px;
+            resize: none;
+            font-family: 'Courier New', monospace;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .display:focus {
+            outline: none;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(255, 255, 255, 0.3);
+        }
+
+        .status {
+            color: white;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            font-family: 'Courier New', monospace;
+        }
+
+        .status.error {
+            background: rgba(255, 107, 107, 0.3);
+            color: #ffcccb;
+        }
+
+        .status.success {
+            background: rgba(76, 175, 80, 0.3);
+            color: #c8e6c9;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-number {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .btn-operator {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .btn-function {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+            text-shadow: none;
+        }
+
+        .btn-equals {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            grid-column: span 2;
+        }
+
+        .btn-clear {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+            text-shadow: none;
+        }
+
+        .function-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .function-buttons .btn {
+            font-size: 0.9em;
+            padding: 10px;
+        }
+
+        .history {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .history h3 {
+            color: white;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .history-list {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 15px;
+            flex: 1;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .history-item {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .history-expression {
+            color: #4facfe;
+            font-weight: bold;
+        }
+
+        .history-result {
+            color: #fee140;
+            margin-left: 10px;
+        }
+
+        .connection-status {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .connected {
+            background: rgba(76, 175, 80, 0.3);
+            color: #c8e6c9;
+        }
+
+        .disconnected {
+            background: rgba(244, 67, 54, 0.3);
+            color: #ffcdd2;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                order: -1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="calculator">
+            <h1>Calculator</h1>
+            
+            <div id="connection-status" class="connection-status disconnected">
+                conectare la backend-ul python...
+            </div>
+            
+            <textarea id="display" class="display" placeholder="introdu expresia...">0</textarea>
+            
+            <div id="status" class="status">gata</div>
+            
+            <div class="buttons">
+                <button class="btn btn-clear" onclick="clearAll()">AC</button>
+                <button class="btn btn-function" onclick="clearEntry()">CE</button>
+                <button class="btn btn-function" onclick="deleteLast()">⌫</button>
+                <button class="btn btn-operator" onclick="appendToDisplay('/')">/</button>
+                
+                <button class="btn btn-number" onclick="appendToDisplay('7')">7</button>
+                <button class="btn btn-number" onclick="appendToDisplay('8')">8</button>
+                <button class="btn btn-number" onclick="appendToDisplay('9')">9</button>
+                <button class="btn btn-operator" onclick="appendToDisplay('*')">×</button>
+                
+                <button class="btn btn-number" onclick="appendToDisplay('4')">4</button>
+                <button class="btn btn-number" onclick="appendToDisplay('5')">5</button>
+                <button class="btn btn-number" onclick="appendToDisplay('6')">6</button>
+                <button class="btn btn-operator" onclick="appendToDisplay('-')">-</button>
+                
+                <button class="btn btn-number" onclick="appendToDisplay('1')">1</button>
+                <button class="btn btn-number" onclick="appendToDisplay('2')">2</button>
+                <button class="btn btn-number" onclick="appendToDisplay('3')">3</button>
+                <button class="btn btn-operator" onclick="appendToDisplay('+')">+</button>
+                
+                <button class="btn btn-number" onclick="appendToDisplay('0')" style="grid-column: span 2;">0</button>
+                <button class="btn btn-function" onclick="appendToDisplay('.')">.</button>
+                <button class="btn btn-equals" onclick="calculate()">=</button>
+            </div>
+            
+            <div class="function-buttons">
+                <button class="btn btn-function" onclick="appendToDisplay('sqrt(')">√</button>
+                <button class="btn btn-function" onclick="appendToDisplay('sin(')">sin</button>
+                <button class="btn btn-function" onclick="appendToDisplay('cos(')">cos</button>
+                <button class="btn btn-function" onclick="appendToDisplay('tan(')">tan</button>
+                <button class="btn btn-function" onclick="appendToDisplay('log(')">log</button>
+                <button class="btn btn-function" onclick="appendToDisplay('ln(')">ln</button>
+                <button class="btn btn-function" onclick="appendToDisplay('pi')">π</button>
+                <button class="btn btn-function" onclick="appendToDisplay('e')">e</button>
+                <button class="btn btn-function" onclick="appendToDisplay('(')">(</button>
+                <button class="btn btn-function" onclick="appendToDisplay(')')">)</button>
+                <button class="btn btn-function" onclick="appendToDisplay('**')">^</button>
+                <button class="btn btn-function" onclick="appendToDisplay('abs(')">|x|</button>
+            </div>
+        </div>
+        
+        <div class="sidebar">
+            <div class="history">
+                <h3>📊 istoric calcule</h3>
+                <div id="history-list" class="history-list">
+                    <div class="history-item">nu exista calcule inca</div>
+                </div>
+                <button class="btn btn-clear" onclick="clearHistory()" style="margin-top: 15px;">sterge istoric</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let display = document.getElementById('display');
+        let statusDiv = document.getElementById('status');
+        let historyList = document.getElementById('history-list');
+        let connectionStatus = document.getElementById('connection-status');
+        let currentInput = '0';
+        let shouldResetDisplay = false;
+
+        // verifica conexiunea cu backend-ul
+        async function checkConnection() {
+            try {
+                const response = await fetch('/functii');
+                if (response.ok) {
+                    connectionStatus.textContent = 'conectat la backend-ul python ✓';
+                    connectionStatus.className = 'connection-status connected';
+                    loadHistory();
+                } else {
+                    throw new Error('backend-ul nu raspunde');
+                }
+            } catch (error) {
+                connectionStatus.textContent = 'conexiunea cu backend-ul a esuat ✗';
+                connectionStatus.className = 'connection-status disconnected';
+            }
+        }
+
+        function updateDisplay() {
+            display.value = currentInput;
+        }
+
+        function updateStatus(message, isError = false) {
+            statusDiv.textContent = message;
+            statusDiv.className = isError ? 'status error' : 'status success';
+        }
+
+        function appendToDisplay(value) {
+            if (shouldResetDisplay) {
+                currentInput = '';
+                shouldResetDisplay = false;
+            }
+            
+            if (currentInput === '0' && value !== '.') {
+                currentInput = value;
+            } else {
+                currentInput += value;
+            }
+            updateDisplay();
+        }
+
+        function clearAll() {
+            currentInput = '0';
+            updateDisplay();
+            updateStatus('sters');
+        }
+
+        function clearEntry() {
+            currentInput = '0';
+            updateDisplay();
+            updateStatus('intrare stearsa');
+        }
+
+        function deleteLast() {
+            if (currentInput.length > 1) {
+                currentInput = currentInput.slice(0, -1);
+            } else {
+                currentInput = '0';
+            }
+            updateDisplay();
+        }
+
+        async function calculate() {
+            if (currentInput === '0' || currentInput === '') {
+                updateStatus('introdu mai intai o expresie', true);
+                return;
+            }
+
+            updateStatus('calculez...');
+            
+            try {
+                const response = await fetch('/calculeaza', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        expresie: currentInput
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.succes) {
+                    currentInput = data.rezultat;
+                    shouldResetDisplay = true;
+                    updateDisplay();
+                    updateStatus(`rezultat: ${data.rezultat}`);
+                    loadHistory(); // improspatarea istoricului
+                } else {
+                    updateStatus(`eroare: ${data.eroare}`, true);
+                    setTimeout(() => {
+                        updateStatus('gata');
+                    }, 3000);
+                }
+            } catch (error) {
+                updateStatus('eroare de retea - verifica conexiunea cu backend-ul', true);
+                setTimeout(() => {
+                    updateStatus('gata');
+                }, 3000);
+            }
+        }
+
+        async function loadHistory() {
+            try {
+                const response = await fetch('/istoric');
+                const data = await response.json();
+                
+                if (data.succes && data.istoric.length > 0) {
+                    historyList.innerHTML = '';
+                    data.istoric.reverse().forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'history-item';
+                        div.innerHTML = `
+                            <span class="history-expression">${item.expresie}</span>
+                            <span class="history-result">= ${item.rezultat}</span>
+                        `;
+                        historyList.appendChild(div);
+                    });
+                } else if (data.istoric.length === 0) {
+                    historyList.innerHTML = '<div class="history-item">nu exista calcule inca</div>';
+                }
+            } catch (error) {
+                console.error('nu s-a putut incarca istoricul:', error);
+            }
+        }
+
+        async function clearHistory() {
+            try {
+                const response = await fetch('/sterge_istoric', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    historyList.innerHTML = '<div class="history-item">nu exista calcule inca</div>';
+                    updateStatus('istoric sters');
+                }
+            } catch (error) {
+                updateStatus('nu s-a putut sterge istoricul', true);
+            }
+        }
+
+        // Keyboard support
+        document.addEventListener('keydown', function(event) {
+            const key = event.key;
+            
+            if ('0123456789'.includes(key)) {
+                appendToDisplay(key);
+            } else if ('+-*/'.includes(key)) {
+                appendToDisplay(key);
+            } else if (key === '.') {
+                appendToDisplay(key);
+            } else if (key === 'Enter' || key === '=') {
+                event.preventDefault();
+                calculate();
+            } else if (key === 'Escape') {
+                clearAll();
+            } else if (key === 'Backspace') {
+                event.preventDefault();
+                deleteLast();
+            } else if (key === '(' || key === ')') {
+                appendToDisplay(key);
+            }
+        });
+
+        // initializare
+        updateDisplay();
+        updateStatus('gata');
+        checkConnection();
+        
+        // verifica conexiunea periodic
+        setInterval(checkConnection, 30000);
+    </script>
+</body>
+</html>
